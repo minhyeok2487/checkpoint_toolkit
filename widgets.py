@@ -67,11 +67,21 @@ class PositionDialog(ctk.CTkToplevel):
     def __init__(self, parent, title: str, message: str):
         super().__init__(parent)
         self.title(title)
-        self.geometry("380x180")
+        self.geometry("380x200")
         self.resizable(False, False)
         self.result = None
         self.transient(parent)
         self.grab_set()
+
+        # 부모 창 기준 중앙 배치
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        x = parent_x + (parent_w - self.winfo_width()) // 2
+        y = parent_y + (parent_h - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
         
         ctk.CTkLabel(self, text=title, font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(15, 5))
         ctk.CTkLabel(self, text=message, font=ctk.CTkFont(size=11), wraplength=340).pack(padx=15, pady=5)
@@ -104,21 +114,34 @@ class RowDialog(ctk.CTkToplevel):
     def __init__(self, parent, columns: list, title: str, values: list = None):
         super().__init__(parent)
         self.title(title)
-        self.geometry("420x320")
+        self.geometry("420x380")
         self.resizable(False, False)
         self.result = None
         self.transient(parent)
         self.grab_set()
+
+        # 부모 창 기준 중앙 배치
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        x = parent_x + (parent_w - self.winfo_width()) // 2
+        y = parent_y + (parent_h - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
         
         ctk.CTkLabel(self, text=title, font=ctk.CTkFont(size=14, weight="bold"), text_color=BRAND_BERRY).pack(pady=(10, 5))
-        
+
+        form = ctk.CTkFrame(self, fg_color="transparent")
+        form.pack(fill="x", padx=20, pady=5)
+        form.grid_columnconfigure(0, weight=0, minsize=80)
+        form.grid_columnconfigure(1, weight=1)
+
         self.entries = {}
         for i, col in enumerate(columns):
-            f = ctk.CTkFrame(self, fg_color="transparent")
-            f.pack(fill="x", padx=20, pady=3)
-            ctk.CTkLabel(f, text=f"{col}:", width=100, anchor="e").pack(side="left")
-            e = ctk.CTkEntry(f, width=260)
-            e.pack(side="left", padx=10)
+            ctk.CTkLabel(form, text=f"{col}:", anchor="e").grid(row=i, column=0, sticky="e", padx=(0, 10), pady=3)
+            e = ctk.CTkEntry(form, width=260)
+            e.grid(row=i, column=1, sticky="w", pady=3)
             if values and i < len(values):
                 e.insert(0, str(values[i]))
             self.entries[col] = e
@@ -147,11 +170,21 @@ class MessageDialog(ctk.CTkToplevel):
     def __init__(self, parent, title: str, message: str, msg_type: str = "info", ask: bool = False):
         super().__init__(parent)
         self.title(title)
-        self.geometry("350x150")
+        self.geometry("350x170")
         self.resizable(False, False)
         self.result = None
         self.transient(parent)
         self.grab_set()
+
+        # 부모 창 기준 중앙 배치
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        x = parent_x + (parent_w - self.winfo_width()) // 2
+        y = parent_y + (parent_h - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
         
         icons = {"info": "ℹ️", "warning": "⚠️", "error": "❌", "success": "✅", "question": "❓"}
         icon = icons.get(msg_type, "ℹ️")
