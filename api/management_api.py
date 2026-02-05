@@ -144,3 +144,9 @@ class CheckPointAPI:
     
     def set_rule_negate_destination(self, uid: str, layer: str, zones: list) -> dict:
         return self._call("set-access-rule", {"uid": uid, "layer": layer, "destination": zones, "destination-negate": True, "ignore-warnings": True})
+
+    def add_dns_domain(self, name: str, is_sub_domain: bool = False, comments: str = "") -> dict:
+        return self._call("add-dns-domain", {"name": name, "is-sub-domain": is_sub_domain, "comments": comments, "ignore-warnings": True})
+
+    def set_dns_domain(self, name: str, is_sub_domain: bool = False, comments: str = "") -> dict:
+        return self._call("set-dns-domain", {"name": name, "is-sub-domain": is_sub_domain, "comments": comments, "ignore-warnings": True})

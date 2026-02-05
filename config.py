@@ -62,6 +62,14 @@ def get_object_types(lang="ko"):
                 "api_columns": ["name", "url-list", "primary-category", "description"],
                 "format": "Name*, URL List*(;sep), Category, Description",
                 "template": [["name", "url-list", "primary-category", "description"], ["blocked", "malware.com;phish.net", "", "Blocked sites"]]
+            },
+            "dns-domain": {
+                "columns": ["Domain", "FQDN Only", "Description"],
+                "api_columns": ["name", "fqdn-only", "comments"],
+                "format": "Domain(.example.com), FQDN Only(true/false), Description",
+                "template": [["name", "fqdn-only", "comments"],
+                             [".naver.com", "true", "Naver (exact domain only)"],
+                             [".google.com", "false", "Google (includes subdomains)"]]
             }
         }
     else:
@@ -107,5 +115,13 @@ def get_object_types(lang="ko"):
                 "api_columns": ["name", "url-list", "primary-category", "description"],
                 "format": "이름*, URL목록*(;구분), 카테고리, 설명",
                 "template": [["name", "url-list", "primary-category", "description"], ["blocked", "malware.com;phish.net", "", "차단사이트"]]
+            },
+            "dns-domain": {
+                "columns": ["도메인", "FQDN전용", "설명"],
+                "api_columns": ["name", "fqdn-only", "comments"],
+                "format": "도메인(.example.com), FQDN전용(true/false), 설명",
+                "template": [["name", "fqdn-only", "comments"],
+                             [".naver.com", "true", "네이버 (정확히 이 도메인만)"],
+                             [".google.com", "false", "구글 (하위도메인 포함)"]]
             }
         }
