@@ -137,6 +137,12 @@ LANG = {
         "col_end_ip": "종료IP",
         "col_urls": "URL목록",
         "col_category": "카테고리",
+
+        # Export 기능
+        "fetch_server": "서버에서 불러오기",
+        "msg_fetching_start": "오브젝트 조회 중...",
+        "msg_fetching": "불러오는 중... {current}/{total}",
+        "msg_fetched": "{count}개 오브젝트 불러옴",
     },
     
     "en": {
@@ -272,6 +278,12 @@ LANG = {
         "col_end_ip": "End IP",
         "col_urls": "URL List",
         "col_category": "Category",
+
+        # Export feature
+        "fetch_server": "Fetch from Server",
+        "msg_fetching_start": "Fetching objects...",
+        "msg_fetching": "Fetching... {current}/{total}",
+        "msg_fetched": "{count} objects fetched",
     }
 }
 

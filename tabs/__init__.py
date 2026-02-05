@@ -62,6 +62,8 @@ class ImportTab(ctk.CTkFrame):
         self.btn_delete.pack(side="left", padx=2)
         self.btn_save = IconButton(btn_frame, t("save_csv"), self._save_csv, "secondary", 85)
         self.btn_save.pack(side="left", padx=2)
+        self.btn_fetch = IconButton(btn_frame, t("fetch_server"), self._fetch_objects, "secondary", 110)
+        self.btn_fetch.pack(side="left", padx=2)
         self.btn_template = IconButton(btn_frame, t("template"), self._create_template, "secondary", 70)
         self.btn_template.pack(side="left", padx=2)
         
@@ -137,6 +139,7 @@ class ImportTab(ctk.CTkFrame):
         self.btn_edit.configure(text=t("edit"))
         self.btn_delete.configure(text=t("delete"))
         self.btn_save.configure(text=t("save_csv"))
+        self.btn_fetch.configure(text=t("fetch_server"))
         self.btn_template.configure(text=t("template"))
         self.lbl_file.configure(text=t("file"))
         self.chk_update.configure(text=t("update_existing"))
@@ -219,7 +222,9 @@ class ImportTab(ctk.CTkFrame):
     def _save_csv(self):
         if not self.tree.get_children():
             show_warning(self.app, t("warning"), t("msg_no_save_data")); return
-        filepath = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")])
+        obj_type = self.obj_type.get()
+        default_name = f"export_{obj_type}.csv"
+        filepath = filedialog.asksaveasfilename(defaultextension=".csv", initialfile=default_name, filetypes=[("CSV", "*.csv")])
         if not filepath: return
         with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
@@ -238,6 +243,59 @@ class ImportTab(ctk.CTkFrame):
             writer = csv.writer(f)
             for row in template: writer.writerow(row)
         show_info(self.app, t("complete"), t("msg_template_created", path=filepath))
+
+    def _fetch_objects(self):
+        """서버에서 오브젝트 불러오기"""
+        if not self.app.connected:
+            show_warning(self.app, t("warning"), t("msg_connect_first"))
+            return
+
+        obj_type = self.obj_type.get()
+        # 테이블 초기화
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # 진행 상황 콜백
+        def on_progress(current, total):
+            self.app.set_status(t("msg_fetching", current=current, total=total))
+
+        # API 호출 (페이징 처리)
+        self.app.set_status(t("msg_fetching_start"))
+        result = self.app.api.show_all_objects(obj_type, on_progress)
+        if "objects" not in result:
+            show_error(self.app, t("error"), result.get("message", "Failed"))
+            self.app.set_status(t("ready"))
+            return
+
+        # 결과를 테이블에 표시
+        for obj in result["objects"]:
+            row = self._parse_object(obj_type, obj)
+            self.tree.insert("", "end", values=row)
+
+        self._update_row_count()
+        self.app.set_status(t("ready"))
+        self.app.log(t("msg_fetched", count=len(result["objects"])), "SUCCESS")
+
+    def _parse_object(self, obj_type: str, obj: dict) -> list:
+        """API 응답을 테이블 행으로 변환"""
+        if obj_type == "host":
+            return [obj.get("name"), obj.get("ipv4-address", ""), obj.get("comments", "")]
+        elif obj_type == "network":
+            return [obj.get("name"), obj.get("subnet4", ""), obj.get("mask-length4", ""), obj.get("comments", "")]
+        elif obj_type == "group":
+            members = ";".join([m.get("name", "") for m in obj.get("members", [])])
+            return [obj.get("name"), members, obj.get("comments", "")]
+        elif obj_type in ("service-tcp", "service-udp"):
+            return [obj.get("name"), obj.get("port", ""), obj.get("comments", "")]
+        elif obj_type == "address-range":
+            return [obj.get("name"), obj.get("ipv4-address-first", ""), obj.get("ipv4-address-last", ""), obj.get("comments", "")]
+        elif obj_type == "application-site":
+            urls = ";".join(obj.get("url-list", []))
+            return [obj.get("name"), urls, obj.get("primary-category", ""), obj.get("description", "")]
+        elif obj_type == "dns-domain":
+            fqdn_only = "true" if not obj.get("is-sub-domain", False) else "false"
+            return [obj.get("name"), fqdn_only, obj.get("comments", "")]
+        return [obj.get("name", "")]
     
     def _start_import(self):
         if self.app.is_running: return

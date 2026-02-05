@@ -150,3 +150,42 @@ class CheckPointAPI:
 
     def set_dns_domain(self, name: str, is_sub_domain: bool = False, comments: str = "") -> dict:
         return self._call("set-dns-domain", {"name": name, "is-sub-domain": is_sub_domain, "comments": comments, "ignore-warnings": True})
+
+    def show_objects(self, obj_type: str, limit: int = 500, offset: int = 0) -> dict:
+        """범용 오브젝트 목록 조회 (단일 페이지)"""
+        return self._call(f"show-{obj_type}s", {
+            "limit": limit,
+            "offset": offset,
+            "details-level": "standard"
+        })
+
+    def show_all_objects(self, obj_type: str, progress_callback=None, user_defined_only=True) -> dict:
+        """전체 오브젝트 목록 조회 (페이징 처리)"""
+        all_objects = []
+        offset = 0
+        limit = 500
+        total = None
+
+        while True:
+            result = self.show_objects(obj_type, limit, offset)
+            if "objects" not in result:
+                return result  # 오류 반환
+
+            # 사용자 정의 오브젝트만 필터링
+            if user_defined_only:
+                filtered = [obj for obj in result["objects"]
+                           if obj.get("domain", {}).get("name") == "SMC User"]
+                all_objects.extend(filtered)
+            else:
+                all_objects.extend(result["objects"])
+
+            total = result.get("total", len(all_objects))
+
+            if progress_callback:
+                progress_callback(offset + len(result["objects"]), total)
+
+            if offset + limit >= total:
+                break
+            offset += limit
+
+        return {"objects": all_objects, "total": len(all_objects)}
