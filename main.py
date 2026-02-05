@@ -61,6 +61,14 @@ class App(ctk.CTk):
         self.title(t("app_title"))
         self.geometry(APP_GEOMETRY)
         self.minsize(*APP_MIN_SIZE)
+
+        # 화면 중앙 배치
+        win_w, win_h = 1400, 800  # APP_GEOMETRY 값
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        x = (screen_w - win_w) // 2
+        y = (screen_h - win_h) // 2
+        self.geometry(f"{win_w}x{win_h}+{x}+{y}")
         
         self.api = None
         self.connected = False
