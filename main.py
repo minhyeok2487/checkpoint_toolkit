@@ -114,7 +114,7 @@ class App(ctk.CTk):
         txt.pack(side="left")
         self.title_label = ctk.CTkLabel(txt, text=t("app_title").replace(" v3.2", ""), font=ctk.CTkFont(size=18, weight="bold"))
         self.title_label.pack(anchor="w")
-        self.subtitle_label = ctk.CTkLabel(txt, text=t("app_subtitle"), font=ctk.CTkFont(size=10))
+        self.subtitle_label = ctk.CTkLabel(txt, text=t("app_subtitle"), font=ctk.CTkFont(size=11))
         self.subtitle_label.pack(anchor="w")
         
         conn = ctk.CTkFrame(header, corner_radius=8)
@@ -161,10 +161,10 @@ class App(ctk.CTk):
         self.disconnect_btn.pack(side="left", padx=2)
         self.disconnect_btn.configure(state="disabled")
         
-        self.status_dot = ctk.CTkLabel(r2, text="●", font=ctk.CTkFont(size=10), text_color=ERROR)
+        self.status_dot = ctk.CTkLabel(r2, text="●", font=ctk.CTkFont(size=11), text_color=ERROR)
         self.status_dot.pack(side="left", padx=(8, 2))
         
-        self.status_label = ctk.CTkLabel(r2, text=t("disconnected"), font=ctk.CTkFont(size=10))
+        self.status_label = ctk.CTkLabel(r2, text=t("disconnected"), font=ctk.CTkFont(size=11))
         self.status_label.pack(side="left")
         
         self.theme_btn = ctk.CTkButton(

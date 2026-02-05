@@ -111,8 +111,8 @@ class ZonePolicyTab(ctk.CTkFrame):
 • Enter rule number for insertion (e.g. 61 if Cleanup is #61)
 • After Inbound, you'll be asked for Outbound position"""
         
-        self.info_label = ctk.CTkLabel(frame, text=info_ko if get_lang() == "ko" else info_en, 
-                                        font=ctk.CTkFont(size=10), justify="left")
+        self.info_label = ctk.CTkLabel(frame, text=info_ko if get_lang() == "ko" else info_en,
+                                        font=ctk.CTkFont(size=11), text_color="#B0B0B0", justify="left")
         self.info_label.pack(padx=15, pady=10, anchor="w")
     
     def _build_button_section(self):

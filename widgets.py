@@ -39,7 +39,7 @@ class LogPanel(ctk.CTkFrame):
         self.textbox.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
         self.textbox.configure(state="disabled")
         
-        self.status_label = ctk.CTkLabel(self, text=t("ready"), font=ctk.CTkFont(size=10), anchor="w")
+        self.status_label = ctk.CTkLabel(self, text=t("ready"), font=ctk.CTkFont(size=11), anchor="w")
         self.status_label.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
     
     def refresh_lang(self):
@@ -148,7 +148,7 @@ class RowDialog(ctk.CTkToplevel):
         
         hint_cols = ["멤버", "URL목록", "Members", "URL List"]
         if any(c in columns for c in hint_cols):
-            ctk.CTkLabel(self, text=t("multi_value_hint"), font=ctk.CTkFont(size=10)).pack(pady=5)
+            ctk.CTkLabel(self, text=t("multi_value_hint"), font=ctk.CTkFont(size=11), text_color="#B0B0B0").pack(pady=5)
         
         btn = ctk.CTkFrame(self, fg_color="transparent")
         btn.pack(pady=15)

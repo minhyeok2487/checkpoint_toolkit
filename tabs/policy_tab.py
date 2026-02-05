@@ -92,17 +92,17 @@ class PolicyTab(ctk.CTkFrame):
         self.btn_template = IconButton(btn_frame, "템플릿" if get_lang() == "ko" else "Template", self._create_template, "secondary", 70)
         self.btn_template.pack(side="left", padx=2)
         
-        self.lbl_file = ctk.CTkLabel(btn_frame, text="파일:" if get_lang() == "ko" else "File:", font=ctk.CTkFont(size=10))
+        self.lbl_file = ctk.CTkLabel(btn_frame, text="파일:" if get_lang() == "ko" else "File:", font=ctk.CTkFont(size=11))
         self.lbl_file.pack(side="left", padx=(15, 5))
         self.csv_path = ctk.StringVar()
-        ctk.CTkEntry(btn_frame, textvariable=self.csv_path, state="readonly", width=180, height=26, font=ctk.CTkFont(size=10)).pack(side="left")
+        ctk.CTkEntry(btn_frame, textvariable=self.csv_path, state="readonly", width=180, height=26, font=ctk.CTkFont(size=11)).pack(side="left")
         
         hint_frame = ctk.CTkFrame(inner, fg_color="transparent")
         hint_frame.pack(fill="x", pady=(8, 0))
         hint_ko = "⚠️ 오브젝트: 대량 등록 탭에서 먼저 등록 필요! (또는 자동생성 옵션 → 빈 그룹 생성)\n⚠️ 서비스: CheckPoint에 등록된 이름과 정확히 일치해야 함 (예: http, https, ssh, MSSQL 등)\n💡 다중 값: 세미콜론(;)으로 구분 | 액션: Accept, Drop, Reject | 트랙: Log, None"
         hint_en = "⚠️ Objects: Register first in Bulk Import tab! (or Auto objects option → creates empty groups)\n⚠️ Services: Must exactly match names registered in CheckPoint (e.g. http, https, ssh, MSSQL)\n💡 Multiple values: semicolon(;) separated | Action: Accept, Drop, Reject | Track: Log, None"
-        self.hint_label = ctk.CTkLabel(hint_frame, text=hint_ko if get_lang() == "ko" else hint_en, 
-                                        font=ctk.CTkFont(size=10), wraplength=900, justify="left")
+        self.hint_label = ctk.CTkLabel(hint_frame, text=hint_ko if get_lang() == "ko" else hint_en,
+                                        font=ctk.CTkFont(size=11), text_color="#B0B0B0", wraplength=900, justify="left")
         self.hint_label.pack(anchor="w")
     
     def _build_table(self):

@@ -46,7 +46,7 @@ class ImportTab(ctk.CTkFrame):
             ctk.CTkRadioButton(types_frame, text=text, variable=self.obj_type, value=value,
                                command=self._on_type_change, font=ctk.CTkFont(size=11), fg_color=BRAND_BERRY).pack(side="left", padx=(0, 15))
         
-        self.format_label = ctk.CTkLabel(inner, text=t("format") + " " + self._get_format(), font=ctk.CTkFont(size=10))
+        self.format_label = ctk.CTkLabel(inner, text=t("format") + " " + self._get_format(), font=ctk.CTkFont(size=11))
         self.format_label.pack(anchor="w", pady=(5, 0))
         
         btn_frame = ctk.CTkFrame(inner, fg_color="transparent")
@@ -67,10 +67,10 @@ class ImportTab(ctk.CTkFrame):
         self.btn_template = IconButton(btn_frame, t("template"), self._create_template, "secondary", 70)
         self.btn_template.pack(side="left", padx=2)
         
-        self.lbl_file = ctk.CTkLabel(btn_frame, text=t("file"), font=ctk.CTkFont(size=10))
+        self.lbl_file = ctk.CTkLabel(btn_frame, text=t("file"), font=ctk.CTkFont(size=11))
         self.lbl_file.pack(side="left", padx=(15, 5))
         self.csv_path = ctk.StringVar()
-        ctk.CTkEntry(btn_frame, textvariable=self.csv_path, state="readonly", width=200, height=26, font=ctk.CTkFont(size=10)).pack(side="left")
+        ctk.CTkEntry(btn_frame, textvariable=self.csv_path, state="readonly", width=200, height=26, font=ctk.CTkFont(size=11)).pack(side="left")
     
     def _build_table(self):
         table_frame = ctk.CTkFrame(self, corner_radius=8)
