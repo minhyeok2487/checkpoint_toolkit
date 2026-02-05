@@ -41,7 +41,8 @@ class ImportTab(ctk.CTkFrame):
         
         for text, value in [("Host", "host"), ("Network", "network"), ("Group", "group"),
                             ("Service-TCP", "service-tcp"), ("Service-UDP", "service-udp"),
-                            ("Address-Range", "address-range"), ("App Site(URL)", "application-site")]:
+                            ("Address-Range", "address-range"), ("App Site(URL)", "application-site"),
+                            ("DNS Domain", "dns-domain")]:
             ctk.CTkRadioButton(types_frame, text=text, variable=self.obj_type, value=value,
                                command=self._on_type_change, font=ctk.CTkFont(size=11), fg_color=BRAND_BERRY).pack(side="left", padx=(0, 15))
         
@@ -336,6 +337,11 @@ class ImportTab(ctk.CTkFrame):
             category = row[2] if len(row) > 2 else ""
             desc = row[3] if len(row) > 3 else ""
             r = self.app.api.add_application_site(name, urls, category, desc)
+        elif obj_type == "dns-domain":
+            fqdn_only = (row[1] if len(row) > 1 else "true").lower() == "true"
+            is_sub = not fqdn_only  # FQDN전용=true면 is-sub-domain=false
+            comments = row[2] if len(row) > 2 else ""
+            r = self.app.api.set_dns_domain(name, is_sub, comments) if exists else self.app.api.add_dns_domain(name, is_sub, comments)
         else:
             return "Unknown type"
         
