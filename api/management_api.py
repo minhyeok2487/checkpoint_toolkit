@@ -103,7 +103,17 @@ class CheckPointAPI:
         return self._call("set-access-layer", {"name": name, "applications-and-url-filtering": True, "content-awareness": True, "ignore-warnings": True})
     
     def set_cleanup_rule(self, layer: str) -> dict:
-        return self._call("add-access-rule", {"layer": layer, "position": "bottom", "name": "Cleanup Rule", "action": "Drop", "track": {"type": "Log"}, "ignore-warnings": True})
+        return self._call("add-access-rule", {
+            "layer": layer,
+            "position": "bottom",
+            "name": "Cleanup Rule",
+            "source": "Any",
+            "destination": "Any",
+            "service": "Any",
+            "action": "Drop",
+            "track": {"type": "Log"},
+            "ignore-warnings": True
+        })
     
     def add_access_section(self, layer: str, name: str, position: str = "") -> dict:
         """Create section at specified position"""

@@ -229,6 +229,7 @@ class ZonePolicyTab(ctk.CTkFrame):
         win = ctk.CTkToplevel(self)
         win.title("미리보기" if lang == "ko" else "Preview")
         win.geometry("500x500")
+        win.after(100, lambda: (win.lift(), win.focus_force()))
         t = ctk.CTkTextbox(win, font=ctk.CTkFont(family="Consolas", size=11))
         t.pack(fill="both", expand=True, padx=10, pady=10)
         t.insert("1.0", txt)
