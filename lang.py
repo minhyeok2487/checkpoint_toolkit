@@ -5,7 +5,7 @@ CheckPoint Management Toolkit - 다국어 지원
 LANG = {
     "ko": {
         # 앱
-        "app_title": "CheckPoint 관리 도구 v3.5",
+        "app_title": "CheckPoint 관리 도구 v3.7",
         "app_subtitle": "현대오토에버 보안팀",
         
         # 헤더
@@ -147,7 +147,7 @@ LANG = {
     
     "en": {
         # App
-        "app_title": "CheckPoint Management Tool v3.5",
+        "app_title": "CheckPoint Management Tool v3.7",
         "app_subtitle": "Bulk Object & Policy Manager",
         
         # Header

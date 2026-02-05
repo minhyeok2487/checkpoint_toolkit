@@ -3,7 +3,7 @@ chcp 65001 > nul
 title CheckPoint Toolkit Build
 
 echo ========================================
-echo   CheckPoint Toolkit v3.2 Build
+echo   CheckPoint Toolkit v3.7 Build
 echo   Hyundai AutoEver Security Team
 echo ========================================
 echo.
@@ -40,8 +40,9 @@ echo.
 pyinstaller --noconfirm --onefile --windowed ^
     --name "CheckPointToolkit" ^
     --add-data "config.py;." ^
-    --add-data "api.py;." ^
+    --add-data "lang.py;." ^
     --add-data "widgets.py;." ^
+    --add-data "api;api" ^
     --add-data "tabs;tabs" ^
     --hidden-import customtkinter ^
     --hidden-import tkinter ^

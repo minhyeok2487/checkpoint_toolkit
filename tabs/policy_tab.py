@@ -14,13 +14,20 @@ from lang import t, get_lang
 from widgets import IconButton, RowDialog, PositionDialog, show_info, show_warning, show_error, ask_yesno
 
 
-# 정책 컬럼 정의 (섹션 제거)
+# 정책 컬럼 정의 (서버 불러오기용 - No., Type 포함)
+POLICY_COLUMNS_FULL = {
+    "ko": ["No.", "Type", "룰이름", "소스", "목적지", "서비스", "액션", "트랙", "설명"],
+    "en": ["No.", "Type", "Name", "Source", "Destination", "Service", "Action", "Track", "Comments"]
+}
+
+# 정책 컬럼 정의 (기본 - CSV 불러오기/수동 추가용)
 POLICY_COLUMNS = {
     "ko": ["룰이름", "소스", "목적지", "서비스", "액션", "트랙", "설명"],
     "en": ["RuleName", "Source", "Destination", "Service", "Action", "Track", "Comments"]
 }
 
 POLICY_API_COLUMNS = ["name", "source", "destination", "service", "action", "track", "comments"]
+POLICY_API_COLUMNS_FULL = ["no", "type", "name", "source", "destination", "service", "action", "track", "comments"]
 
 POLICY_TEMPLATE = [
     ["name", "source", "destination", "service", "action", "track", "comments"],
@@ -34,10 +41,11 @@ class PolicyTab(ctk.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master, fg_color="transparent")
         self.app = app
-        
+        self._full_mode = False
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
-        
+
         self._build_package()
         self._build_options()
         self._build_table()
@@ -91,6 +99,8 @@ class PolicyTab(ctk.CTkFrame):
         self.btn_save.pack(side="left", padx=2)
         self.btn_template = IconButton(btn_frame, "템플릿" if get_lang() == "ko" else "Template", self._create_template, "secondary", 70)
         self.btn_template.pack(side="left", padx=2)
+        self.btn_fetch = IconButton(btn_frame, "서버 불러오기" if get_lang() == "ko" else "Fetch Server", self._fetch_rules, "secondary", 100)
+        self.btn_fetch.pack(side="left", padx=2)
         
         self.lbl_file = ctk.CTkLabel(btn_frame, text="파일:" if get_lang() == "ko" else "File:", font=ctk.CTkFont(size=11))
         self.lbl_file.pack(side="left", padx=(15, 5))
@@ -168,13 +178,19 @@ class PolicyTab(ctk.CTkFrame):
         self.generate_btn.pack(side="right")
         self.generate_btn.configure(state="disabled")
     
-    def _get_columns(self):
+    def _get_columns(self, full=False):
+        if full:
+            return POLICY_COLUMNS_FULL.get(get_lang(), POLICY_COLUMNS_FULL["en"])
         return POLICY_COLUMNS.get(get_lang(), POLICY_COLUMNS["en"])
     
-    def _setup_columns(self):
-        cols = self._get_columns()
+    def _setup_columns(self, full=False):
+        self._full_mode = full
+        cols = self._get_columns(full)
         self.tree["columns"] = cols
-        widths = [120, 150, 150, 120, 80, 80, 200]
+        if full:
+            widths = [60, 60, 120, 150, 150, 120, 80, 80, 200]
+        else:
+            widths = [120, 150, 150, 120, 80, 80, 200]
         for i, col in enumerate(cols):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=widths[i] if i < len(widths) else 100, anchor="w")
@@ -199,6 +215,7 @@ class PolicyTab(ctk.CTkFrame):
         self.btn_delete.configure(text="삭제" if lang == "ko" else "Delete")
         self.btn_save.configure(text="CSV 저장" if lang == "ko" else "Save CSV")
         self.btn_template.configure(text="템플릿" if lang == "ko" else "Template")
+        self.btn_fetch.configure(text="서버 불러오기" if lang == "ko" else "Fetch Server")
         self.lbl_file.configure(text="파일:" if lang == "ko" else "File:")
         
         hint_ko = "⚠️ 오브젝트: 대량 등록 탭에서 먼저 등록 필요! (또는 자동생성 옵션 → 빈 그룹 생성)\n⚠️ 서비스: CheckPoint에 등록된 이름과 정확히 일치해야 함 (예: http, https, ssh, MSSQL 등)\n💡 다중 값: 세미콜론(;)으로 구분 | 액션: Accept, Drop, Reject | 트랙: Log, None"
@@ -222,11 +239,13 @@ class PolicyTab(ctk.CTkFrame):
         )
         if not path:
             return
-        
+
         try:
+            # 기본 모드로 복원
             for item in self.tree.get_children():
                 self.tree.delete(item)
-            
+            self._setup_columns(full=False)
+
             with open(path, encoding="utf-8-sig") as f:
                 reader = csv.reader(f)
                 header = next(reader, None)
@@ -251,11 +270,15 @@ class PolicyTab(ctk.CTkFrame):
         )
         if not path:
             return
-        
+
         try:
             with open(path, "w", newline="", encoding="utf-8-sig") as f:
                 writer = csv.writer(f)
-                writer.writerow(POLICY_API_COLUMNS)
+                # full 모드인지 확인
+                if getattr(self, '_full_mode', False):
+                    writer.writerow(POLICY_API_COLUMNS_FULL)
+                else:
+                    writer.writerow(POLICY_API_COLUMNS)
                 for item in self.tree.get_children():
                     writer.writerow(self.tree.item(item)["values"])
             show_info(self.app, t("success"), f"저장 완료: {path}" if get_lang() == "ko" else f"Saved: {path}")
@@ -540,3 +563,148 @@ class PolicyTab(ctk.CTkFrame):
     def _create_placeholder(self, name: str):
         self.app.api._call("add-group", {"name": name, "comments": "Auto-created placeholder"})
         self.app.log(f"  → 그룹 생성: {name}" if get_lang() == "ko" else f"  → Group created: {name}", "INFO")
+
+    # === 서버에서 정책 불러오기 ===
+    def _fetch_rules(self):
+        """서버에서 정책 불러오기"""
+        if not self.app.connected:
+            show_warning(self.app, t("warning"), "서버에 연결하세요" if get_lang() == "ko" else "Connect first")
+            return
+
+        pkg = self.package_entry.get().strip()
+        layer = self.layer_entry.get().strip()
+
+        if not pkg:
+            show_warning(self.app, t("warning"), "패키지 입력" if get_lang() == "ko" else "Enter package")
+            return
+
+        # 레이어 자동 감지
+        if not layer:
+            r = self.app.api.show_package(pkg)
+            if "uid" not in r:
+                show_error(self.app, t("error"), "패키지 없음" if get_lang() == "ko" else "Package not found")
+                return
+            layers = r.get("access-layers", [])
+            layer = layers[0].get("name") if layers else f"{pkg} Network"
+
+        # 테이블 초기화 및 Full 모드로 변경
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        self._setup_columns(full=True)
+
+        # API 호출
+        self.app.set_status("불러오는 중..." if get_lang() == "ko" else "Fetching...")
+        result = self.app.api.show_all_access_rules(layer)
+
+        if "items" not in result:
+            show_error(self.app, t("error"), result.get("message", "Failed"))
+            self.app.set_status("준비" if get_lang() == "ko" else "Ready")
+            return
+
+        # UID -> name 매핑
+        objects_dict = result.get("objects_dict", {})
+
+        # 결과를 테이블에 표시 (섹션, 번호 포함)
+        rule_count = 0
+        main_rule_no = 0
+
+        for item in result["items"]:
+            item_type = item.get("_item_type", "Rule")
+
+            if item_type == "Section":
+                # 섹션 행 추가
+                row = ["", "Section", item.get("name", ""), "", "", "", "", "", ""]
+                self.tree.insert("", "end", values=row)
+            else:
+                # 룰 행 추가
+                main_rule_no += 1
+                row = self._parse_rule_full(item, objects_dict, str(main_rule_no))
+                self.tree.insert("", "end", values=row)
+                rule_count += 1
+
+                # inline-layer가 있으면 하위 룰도 가져오기
+                inline_layer = item.get("inline-layer")
+                if inline_layer:
+                    layer_name = inline_layer if isinstance(inline_layer, str) else inline_layer.get("name", "")
+                    if layer_name:
+                        sub_result = self.app.api.show_all_access_rules(layer_name)
+                        if "items" in sub_result:
+                            sub_objects = sub_result.get("objects_dict", {})
+                            objects_dict.update(sub_objects)
+                            sub_rule_no = 0
+                            for sub_item in sub_result["items"]:
+                                if sub_item.get("_item_type") == "Rule":
+                                    sub_rule_no += 1
+                                    sub_row = self._parse_rule_full(sub_item, sub_objects, f"{main_rule_no}.{sub_rule_no}")
+                                    self.tree.insert("", "end", values=sub_row)
+                                    rule_count += 1
+
+        self._update_row_count()
+        self.app.set_status("준비" if get_lang() == "ko" else "Ready")
+        self.app.log(f"{rule_count}개 룰 로드" if get_lang() == "ko" else f"{rule_count} rules loaded", "SUCCESS")
+
+    def _parse_rule_full(self, rule: dict, objects_dict: dict, rule_no: str) -> list:
+        """API 응답을 Full 테이블 행으로 변환 (No., Type 포함)"""
+        base_row = self._parse_rule(rule, objects_dict)
+        return [rule_no, "Rule"] + base_row
+
+    def _parse_rule(self, rule: dict, objects_dict: dict = None) -> list:
+        """API 응답을 테이블 행으로 변환"""
+        if objects_dict is None:
+            objects_dict = {}
+
+        def resolve_name(val):
+            """UID를 이름으로 변환"""
+            if isinstance(val, str):
+                return objects_dict.get(val, val)
+            elif isinstance(val, dict):
+                return val.get("name", str(val))
+            return str(val)
+
+        name = rule.get("name", "")
+
+        # source 처리
+        source = rule.get("source", [])
+        if isinstance(source, list):
+            source = ";".join([resolve_name(s) for s in source])
+        else:
+            source = resolve_name(source)
+
+        # destination 처리
+        destination = rule.get("destination", [])
+        if isinstance(destination, list):
+            destination = ";".join([resolve_name(d) for d in destination])
+        else:
+            destination = resolve_name(destination)
+
+        # service 처리
+        service = rule.get("service", [])
+        if isinstance(service, list):
+            service = ";".join([resolve_name(s) for s in service])
+        else:
+            service = resolve_name(service)
+
+        # action 처리
+        action = rule.get("action", {})
+        action = resolve_name(action)
+
+        # track 처리
+        track = rule.get("track", {})
+        if isinstance(track, dict):
+            track_type = track.get("type", "")
+            if isinstance(track_type, dict):
+                track = track_type.get("name", "Log")
+            elif isinstance(track_type, str):
+                # UID인 경우 objects_dict에서 찾기
+                track = objects_dict.get(track_type, track_type)
+                # 여전히 UID 형태면 None (inline-layer 룰)
+                if "-" in track and len(track) > 20:
+                    track = "None"
+            else:
+                track = "None"
+        else:
+            track = resolve_name(track)
+
+        comments = rule.get("comments", "")
+
+        return [name, source, destination, service, action, track, comments]

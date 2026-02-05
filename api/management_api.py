@@ -189,3 +189,59 @@ class CheckPointAPI:
             offset += limit
 
         return {"objects": all_objects, "total": len(all_objects)}
+
+    def show_all_access_rules(self, layer: str, progress_callback=None) -> dict:
+        """전체 Access Rule 목록 조회 (페이징 처리, 섹션 정보 포함)"""
+        all_items = []  # 섹션과 룰 모두 포함
+        objects_dict = {}  # UID -> name 매핑
+        offset = 0
+        limit = 500
+
+        while True:
+            result = self._call("show-access-rulebase", {
+                "name": layer,
+                "limit": limit,
+                "offset": offset,
+                "details-level": "standard",
+                "use-object-dictionary": True
+            })
+
+            if "rulebase" not in result:
+                return result
+
+            # objects-dictionary에서 UID -> name 매핑 구축
+            for obj in result.get("objects-dictionary", []):
+                uid = obj.get("uid", "")
+                name = obj.get("name", uid)
+                if uid:
+                    objects_dict[uid] = name
+
+            # 섹션과 룰 순서대로 추출
+            for item in result.get("rulebase", []):
+                if item.get("type") == "access-rule":
+                    item["_item_type"] = "Rule"
+                    all_items.append(item)
+                elif item.get("type") == "access-section":
+                    # 섹션 추가
+                    section_item = {
+                        "_item_type": "Section",
+                        "name": item.get("name", ""),
+                        "uid": item.get("uid", "")
+                    }
+                    all_items.append(section_item)
+                    # 섹션 내부 룰도 추출
+                    for rule in item.get("rulebase", []):
+                        if rule.get("type") == "access-rule":
+                            rule["_item_type"] = "Rule"
+                            rule["_section"] = item.get("name", "")
+                            all_items.append(rule)
+
+            total = result.get("total", len(all_items))
+            if progress_callback:
+                progress_callback(offset + limit, total)
+
+            if offset + limit >= total:
+                break
+            offset += limit
+
+        return {"items": all_items, "total": len(all_items), "objects_dict": objects_dict}

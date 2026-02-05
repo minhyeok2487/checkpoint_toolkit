@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-CheckPoint 관리 도구 v3.5 (Stable)
+CheckPoint 관리 도구 v3.7 (Stable)
 현대오토에버 보안팀
 
 Changelog:
+- v3.7: 벌크 정책 탭 - 서버에서 정책 불러오기 기능 (No., Type, Section 포함)
 - v3.5: Stable - Management API 전용 (GAIA API 제외), 듀얼모니터 DPI 최적화
 - v3.4: Zone Policy 생성 로직 안정화 (섹션 이름 기반 position.below)
 - v3.3: 섹션 위치 지정 수정
 - v3.2: Zone Policy 탭 추가
-- v3.1: Bulk Policy 탭 추가  
+- v3.1: Bulk Policy 탭 추가
 - v3.0: 한/영 지원, 모듈화
 """
 
