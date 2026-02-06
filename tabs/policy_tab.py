@@ -229,6 +229,8 @@ class PolicyTab(ctk.CTkFrame):
         self._setup_columns()
     
     def set_generate_enabled(self, enabled):
+        if enabled and self._full_mode:
+            return
         self.generate_btn.configure(state="normal" if enabled else "disabled")
     
     # === CSV 관련 ===
@@ -258,6 +260,8 @@ class PolicyTab(ctk.CTkFrame):
             
             self.csv_path.set(path.split("/")[-1])
             self._update_row_count()
+            if self.app.connected:
+                self.generate_btn.configure(state="normal")
             self.app.log(f"{len(self.tree.get_children())}개 룰 로드" if get_lang() == "ko" else f"{len(self.tree.get_children())} rules loaded", "INFO")
         except Exception as e:
             show_error(self.app, t("error"), str(e))
@@ -591,6 +595,7 @@ class PolicyTab(ctk.CTkFrame):
         for item in self.tree.get_children():
             self.tree.delete(item)
         self._setup_columns(full=True)
+        self.generate_btn.configure(state="disabled")
 
         # API 호출
         self.app.set_status("불러오는 중..." if get_lang() == "ko" else "Fetching...")
@@ -640,6 +645,7 @@ class PolicyTab(ctk.CTkFrame):
                                     rule_count += 1
 
         self._update_row_count()
+        self.generate_btn.configure(state="disabled")
         self.app.set_status("준비" if get_lang() == "ko" else "Ready")
         self.app.log(f"{rule_count}개 룰 로드" if get_lang() == "ko" else f"{rule_count} rules loaded", "SUCCESS")
 
