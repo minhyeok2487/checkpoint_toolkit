@@ -29,15 +29,16 @@ class LogPanel(ctk.CTkFrame):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        # 헤더 (인스턴스 변수로 저장 → grid_remove/grid 사용)
+        self._header = ctk.CTkFrame(self, fg_color="transparent")
+        self._header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
-        self.log_title = ctk.CTkLabel(header, text=t("log_title"), font=ctk.CTkFont(size=12, weight="bold"))
+        self.log_title = ctk.CTkLabel(self._header, text=t("log_title"), font=ctk.CTkFont(size=12, weight="bold"))
         self.log_title.pack(side="left")
-        self.clear_btn = IconButton(header, t("clear"), self.clear, "secondary", 60)
+        self.clear_btn = IconButton(self._header, t("clear"), self.clear, "secondary", 60)
         self.clear_btn.pack(side="right")
         self.toggle_btn = ctk.CTkButton(
-            header, text="▶", width=28, height=28, corner_radius=6,
+            self._header, text="▶", width=28, height=28, corner_radius=6,
             fg_color="gray50", hover_color="gray40",
             font=ctk.CTkFont(size=12, weight="bold"),
             command=self.toggle,
@@ -51,28 +52,48 @@ class LogPanel(ctk.CTkFrame):
         self.status_label = ctk.CTkLabel(self, text=t("ready"), font=ctk.CTkFont(size=11), anchor="w")
         self.status_label.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
 
+        # 접힌 상태용 세로 스트립
+        self._collapsed_strip = ctk.CTkFrame(self, fg_color="transparent")
+        self._collapsed_strip.grid(row=0, column=0, rowspan=3, sticky="nsew")
+        self._collapsed_strip.grid_remove()
+
+        self._strip_btn = ctk.CTkButton(
+            self._collapsed_strip, text=t("log_vertical"),
+            font=ctk.CTkFont(size=11, weight="bold"),
+            fg_color="transparent", hover_color=("gray80", "gray30"),
+            text_color=("gray10", "gray90"),
+            corner_radius=6, width=30,
+            command=self.toggle,
+        )
+        self._strip_btn.pack(fill="both", expand=True, padx=2, pady=2)
+
     def toggle(self):
         self._collapsed = not self._collapsed
         if self._collapsed:
-            self.toggle_btn.configure(text="◀")
+            # 접기 전 실제 너비 저장
+            self._expanded_width = self.winfo_width()
+            # 기존 콘텐츠 숨기기 (모두 grid_remove)
+            self._header.grid_remove()
             self.textbox.grid_remove()
             self.status_label.grid_remove()
-            self.clear_btn.pack_forget()
-            self.log_title.pack_forget()
-            self.configure(width=40)
+            # 세로 스트립 표시
+            self._collapsed_strip.grid()
+            self.configure(width=30)
         else:
-            self.toggle_btn.configure(text="▶")
-            self.log_title.pack(side="left")
-            self.clear_btn.pack(side="right")
+            # 세로 스트립 숨기기
+            self._collapsed_strip.grid_remove()
+            # 기존 콘텐츠 복원 (모두 grid)
+            self._header.grid()
             self.textbox.grid()
             self.status_label.grid()
-            self.configure(width=400)
+            self.configure(width=self._expanded_width)
         if self._on_toggle:
             self._on_toggle(self._collapsed)
 
     def refresh_lang(self):
         self.log_title.configure(text=t("log_title"))
         self.clear_btn.configure(text=t("clear"))
+        self._strip_btn.configure(text=t("log_vertical"))
     
     def log(self, message: str, level: str = "INFO"):
         from datetime import datetime

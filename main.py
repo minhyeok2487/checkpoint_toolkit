@@ -249,7 +249,7 @@ class App(ctk.CTk):
 
     def _on_log_toggle(self, collapsed: bool):
         if collapsed:
-            self._body.grid_columnconfigure(2, weight=0, minsize=40)
+            self._body.grid_columnconfigure(2, weight=0, minsize=30)
         else:
             self._body.grid_columnconfigure(2, weight=1, minsize=40)
     

@@ -59,6 +59,7 @@ LANG = {
         
         # 로그 패널
         "log_title": "📋 실시간 로그",
+        "log_vertical": "◀\n\n로\n그",
         "clear": "지우기",
         "ready": "준비",
         
@@ -143,6 +144,7 @@ LANG = {
         "msg_fetching_start": "오브젝트 조회 중...",
         "msg_fetching": "불러오는 중... {current}/{total}",
         "msg_fetched": "{count}개 오브젝트 불러옴",
+        "msg_resolving_members": "그룹 멤버 이름 확인 중... ({count}개)",
     },
     
     "en": {
@@ -201,6 +203,7 @@ LANG = {
         
         # Log Panel
         "log_title": "📋 Real-time Log",
+        "log_vertical": "◀\n\nL\no\ng",
         "clear": "Clear",
         "ready": "Ready",
         
@@ -284,6 +287,7 @@ LANG = {
         "msg_fetching_start": "Fetching objects...",
         "msg_fetching": "Fetching... {current}/{total}",
         "msg_fetched": "{count} objects fetched",
+        "msg_resolving_members": "Resolving group member names... ({count})",
     }
 }
 
