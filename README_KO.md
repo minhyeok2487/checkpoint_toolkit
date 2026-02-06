@@ -1,4 +1,4 @@
-# CheckPoint Toolkit v3.6 (Stable)
+# CheckPoint Toolkit v3.8 (Stable)
 
 **현대오토에버 보안팀 전용 CheckPoint 방화벽 관리 도구**
 
@@ -345,6 +345,14 @@ CCS_Outbound 섹션:
 ---
 
 ## 버전 히스토리
+
+### v3.8 (2026-02-06) - Stable
+- 🎉 **서버 연결/불러오기 로딩 다이얼로그 추가** (UI 프리징 해소)
+- ✨ LoadingDialog 위젯 추가 (스피너 애니메이션 + 모달)
+- ✨ 서버 연결(`_connect`) 백그라운드 스레드 전환
+- ✨ 오브젝트 불러오기(`_fetch_objects`) 백그라운드 스레드 전환
+- ✨ 정책 불러오기(`_fetch_rules`) 백그라운드 스레드 전환
+- 🔧 블로킹 API 호출 시 메인 UI 응답성 유지
 
 ### v3.6 (2026-01-23) - Stable
 - 🎉 **GAIA API 지원 추가** (Gateway OS 관리)

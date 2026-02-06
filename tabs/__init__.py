@@ -10,7 +10,7 @@ import threading
 
 from config import BRAND_BERRY, get_object_types
 from lang import t, get_lang
-from widgets import IconButton, RowDialog, show_info, show_warning, show_error, ask_yesno
+from widgets import IconButton, RowDialog, LoadingDialog, show_info, show_warning, show_error, ask_yesno
 
 
 class ImportTab(ctk.CTkFrame):
@@ -249,25 +249,63 @@ class ImportTab(ctk.CTkFrame):
         if not self.app.connected:
             show_warning(self.app, t("warning"), t("msg_connect_first"))
             return
+        if self.app.is_running:
+            return
 
         obj_type = self.obj_type.get()
         # 테이블 초기화
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # 진행 상황 콜백
-        def on_progress(current, total):
-            self.app.set_status(t("msg_fetching", current=current, total=total))
-
-        # API 호출 (페이징 처리)
+        self.app.is_running = True
         self.app.set_status(t("msg_fetching_start"))
-        result = self.app.api.show_all_objects(obj_type, on_progress)
+        self._loading = LoadingDialog(self.app, t("loading_fetch_objects"))
+        threading.Thread(target=self._do_fetch_objects, args=(obj_type,), daemon=True).start()
+
+    def _do_fetch_objects(self, obj_type):
+        try:
+            # 진행 상황 콜백
+            def on_progress(current, total):
+                self._loading.update_message(t("msg_fetching", current=current, total=total))
+
+            result = self.app.api.show_all_objects(obj_type, on_progress)
+            if "objects" not in result:
+                self.app.after(0, self._on_fetch_objects_done, obj_type, result)
+                return
+
+            # 그룹 타입인 경우 멤버 UID를 이름으로 resolve
+            if obj_type == "group":
+                uid_set = set()
+                for obj in result["objects"]:
+                    for m in obj.get("members", []):
+                        if isinstance(m, str) and not isinstance(m, dict):
+                            uid_set.add(m)
+                if uid_set:
+                    self._loading.update_message(t("msg_resolving_members", count=len(uid_set)))
+                    self.app.log(t("msg_resolving_members", count=len(uid_set)), "INFO")
+                    uid_name_map = self.app.api.resolve_object_uids(uid_set)
+                    for obj in result["objects"]:
+                        new_members = []
+                        for m in obj.get("members", []):
+                            if isinstance(m, str) and m in uid_name_map:
+                                new_members.append({"name": uid_name_map[m]})
+                            else:
+                                new_members.append(m)
+                        obj["members"] = new_members
+
+            self.app.after(0, self._on_fetch_objects_done, obj_type, result)
+        except Exception as e:
+            self.app.after(0, self._on_fetch_objects_done, obj_type, {"message": str(e)})
+        finally:
+            self.app.after(0, self._loading.close)
+            self.app.is_running = False
+
+    def _on_fetch_objects_done(self, obj_type, result):
         if "objects" not in result:
             show_error(self.app, t("error"), result.get("message", "Failed"))
             self.app.set_status(t("ready"))
             return
 
-        # 결과를 테이블에 표시
         for obj in result["objects"]:
             row = self._parse_object(obj_type, obj)
             self.tree.insert("", "end", values=row)

@@ -5,7 +5,7 @@ CheckPoint Management Toolkit - 다국어 지원
 LANG = {
     "ko": {
         # 앱
-        "app_title": "CheckPoint 관리 도구 v3.7",
+        "app_title": "CheckPoint 관리 도구 v3.8",
         "app_subtitle": "현대오토에버 보안팀",
         
         # 헤더
@@ -145,11 +145,16 @@ LANG = {
         "msg_fetching": "불러오는 중... {current}/{total}",
         "msg_fetched": "{count}개 오브젝트 불러옴",
         "msg_resolving_members": "그룹 멤버 이름 확인 중... ({count}개)",
+
+        # 로딩 다이얼로그
+        "loading_connect": "서버 연결 중...",
+        "loading_fetch_objects": "오브젝트 불러오는 중...",
+        "loading_fetch_rules": "정책 불러오는 중...",
     },
     
     "en": {
         # App
-        "app_title": "CheckPoint Management Tool v3.7",
+        "app_title": "CheckPoint Management Tool v3.8",
         "app_subtitle": "Bulk Object & Policy Manager",
         
         # Header
@@ -288,6 +293,11 @@ LANG = {
         "msg_fetching": "Fetching... {current}/{total}",
         "msg_fetched": "{count} objects fetched",
         "msg_resolving_members": "Resolving group member names... ({count})",
+
+        # Loading dialog
+        "loading_connect": "Connecting to server...",
+        "loading_fetch_objects": "Fetching objects...",
+        "loading_fetch_rules": "Fetching rules...",
     }
 }
 

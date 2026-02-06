@@ -1,4 +1,4 @@
-# CheckPoint Management Tool v3.6 (Stable)
+# CheckPoint Management Tool v3.8 (Stable)
 
 CSV 기반 CheckPoint 오브젝트 및 정책 대량 관리 도구 + GAIA Gateway OS 관리
 

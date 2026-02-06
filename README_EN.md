@@ -1,4 +1,4 @@
-# CheckPoint Toolkit v3.4 (Stable)
+# CheckPoint Toolkit v3.8 (Stable)
 
 **CheckPoint Firewall Management Tool for Hyundai AutoEver Security Team**
 
@@ -336,6 +336,14 @@ Click the **[Template]** button in each feature to generate sample CSV files.
 ---
 
 ## Version History
+
+### v3.8 (2026-02-06) - Stable
+- 🎉 **Loading dialog for server connect/fetch operations** (UI freeze fix)
+- ✨ LoadingDialog widget added (spinner animation + modal)
+- ✨ Server connect (`_connect`) moved to background thread
+- ✨ Object fetch (`_fetch_objects`) moved to background thread
+- ✨ Policy fetch (`_fetch_rules`) moved to background thread
+- 🔧 Main UI stays responsive during blocking API calls
 
 ### v3.4 (2026-01-23) - Stable
 - 🎉 **Zone Policy generation logic stabilized**

@@ -258,6 +258,66 @@ class MessageDialog(ctk.CTkToplevel):
     def _no(self): self.result = False; self.destroy()
 
 
+class LoadingDialog(ctk.CTkToplevel):
+    """모달 로딩 다이얼로그 (스피너 애니메이션)"""
+    _FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+
+    def __init__(self, parent, message=""):
+        super().__init__(parent)
+        self.overrideredirect(True)
+        self.geometry("300x120")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+        self.configure(corner_radius=12)
+
+        # 부모 중앙 배치
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        x = parent_x + (parent_w - 300) // 2
+        y = parent_y + (parent_h - 120) // 2
+        self.geometry(f"300x120+{x}+{y}")
+
+        self._frame_idx = 0
+        self._anim_id = None
+
+        content = ctk.CTkFrame(self, corner_radius=12)
+        content.pack(fill="both", expand=True)
+
+        self._spinner = ctk.CTkLabel(content, text=self._FRAMES[0], font=ctk.CTkFont(size=32))
+        self._spinner.pack(pady=(20, 5))
+
+        self._msg_label = ctk.CTkLabel(content, text=message, font=ctk.CTkFont(size=12))
+        self._msg_label.pack(pady=(0, 15))
+
+        self._animate()
+        self.lift()
+        self.focus_force()
+
+    def _animate(self):
+        self._frame_idx = (self._frame_idx + 1) % len(self._FRAMES)
+        self._spinner.configure(text=self._FRAMES[self._frame_idx])
+        self._anim_id = self.after(80, self._animate)
+
+    def update_message(self, msg):
+        """스레드 안전 메시지 업데이트 — after()로 메인 스레드에서 실행"""
+        self.after(0, lambda: self._msg_label.configure(text=msg))
+
+    def close(self):
+        """애니메이션 정지 + 다이얼로그 닫기"""
+        if self._anim_id is not None:
+            self.after_cancel(self._anim_id)
+            self._anim_id = None
+        try:
+            self.grab_release()
+        except Exception:
+            pass
+        self.destroy()
+
+
 def show_info(parent, title, msg):
     d = MessageDialog(parent, title, msg, "info"); parent.wait_window(d)
 

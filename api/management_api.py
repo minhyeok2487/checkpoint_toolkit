@@ -198,6 +198,19 @@ class CheckPointAPI:
 
         return {"objects": all_objects, "total": len(all_objects)}
 
+    def resolve_object_uids(self, uids: set) -> dict:
+        """UID 집합을 받아 각각 show-object API로 이름을 resolve하여 {uid: name} 딕셔너리 반환"""
+        uid_name_map = {}
+        for uid in uids:
+            try:
+                result = self._call("show-object", {"uid": uid})
+                obj = result.get("object", result)
+                name = obj.get("name", uid)
+                uid_name_map[uid] = name
+            except Exception:
+                uid_name_map[uid] = uid
+        return uid_name_map
+
     def show_all_access_rules(self, layer: str, progress_callback=None) -> dict:
         """전체 Access Rule 목록 조회 (페이징 처리, 섹션 정보 포함)"""
         all_items = []  # 섹션과 룰 모두 포함

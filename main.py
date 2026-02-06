@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-CheckPoint 관리 도구 v3.7 (Stable)
+CheckPoint 관리 도구 v3.8 (Stable)
 현대오토에버 보안팀
 
 Changelog:
+- v3.8: 서버 연결/불러오기 로딩 다이얼로그 추가 (UI 프리징 해소)
 - v3.7: 벌크 정책 탭 - 서버에서 정책 불러오기 기능 (No., Type, Section 포함)
 - v3.5: Stable - Management API 전용 (GAIA API 제외), 듀얼모니터 DPI 최적화
 - v3.4: Zone Policy 생성 로직 안정화 (섹션 이름 기반 position.below)
@@ -46,7 +47,8 @@ import json
 from config import APP_GEOMETRY, APP_MIN_SIZE, BRAND_BERRY, BRAND_BERRY_DARK, SUCCESS, ERROR
 from lang import t, get_lang, set_lang
 from api import CheckPointAPI
-from widgets import IconButton, LogPanel, show_warning, show_error, ask_yesno
+import threading
+from widgets import IconButton, LogPanel, LoadingDialog, show_warning, show_error, ask_yesno
 from tabs import ImportTab
 from tabs.policy_tab import PolicyTab
 from tabs.zone_policy_tab import ZonePolicyTab
@@ -350,24 +352,36 @@ class App(ctk.CTk):
         user = self.user_entry.get().strip()
         password = self.pass_entry.get()
         domain = self.domain_entry.get().strip() or None
-        
+
         if not all([server, user, password]):
             show_warning(self, t("warning"), t("msg_fill_required"))
             return
-        
+
         self.log(t("log_connecting", server=server, port=port), "STEP")
         self.set_status(t("connecting"))
-        
+        self.connect_btn.configure(state="disabled")
+
+        self._loading = LoadingDialog(self, t("loading_connect"))
         self.api = CheckPointAPI(server, int(port))
-        result = self.api.login(user, password, domain)
-        
+        threading.Thread(target=self._do_connect, args=(user, password, domain), daemon=True).start()
+
+    def _do_connect(self, user, password, domain):
+        try:
+            result = self.api.login(user, password, domain)
+            self.after(0, self._on_connect_done, result)
+        except Exception as e:
+            self.after(0, self._on_connect_done, {"message": str(e)})
+        finally:
+            self.after(0, self._loading.close)
+
+    def _on_connect_done(self, result):
         if "sid" in result:
             self.connected = True
             self.log(t("log_connected"), "SUCCESS")
             self.set_status(t("connected"))
             self._set_connected(True)
             self._save_settings()
-            
+
             self.connect_btn.configure(state="disabled")
             self.disconnect_btn.configure(state="normal")
             self.import_tab.set_import_enabled(True)
@@ -376,6 +390,7 @@ class App(ctk.CTk):
         else:
             self.log(t("log_failed", msg=result.get('message')), "ERROR")
             self.set_status(t("disconnected"))
+            self.connect_btn.configure(state="normal")
             show_error(self, t("error"), result.get("message", "Unknown error"))
     
     def _disconnect(self):

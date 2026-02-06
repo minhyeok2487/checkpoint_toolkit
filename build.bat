@@ -3,7 +3,7 @@ chcp 65001 > nul
 title CheckPoint Toolkit Build
 
 echo ========================================
-echo   CheckPoint Toolkit v3.7 Build
+echo   CheckPoint Toolkit v3.8 Build
 echo   Hyundai AutoEver Security Team
 echo ========================================
 echo.

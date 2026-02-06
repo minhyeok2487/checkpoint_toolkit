@@ -11,7 +11,7 @@ import threading
 
 from config import BRAND_BERRY
 from lang import t, get_lang
-from widgets import IconButton, RowDialog, PositionDialog, show_info, show_warning, show_error, ask_yesno
+from widgets import IconButton, RowDialog, PositionDialog, LoadingDialog, show_info, show_warning, show_error, ask_yesno
 
 
 # 정책 컬럼 정의 (서버 불러오기용 - No., Type 포함)
@@ -574,6 +574,8 @@ class PolicyTab(ctk.CTkFrame):
         if not self.app.connected:
             show_warning(self.app, t("warning"), "서버에 연결하세요" if get_lang() == "ko" else "Connect first")
             return
+        if self.app.is_running:
+            return
 
         pkg = self.package_entry.get().strip()
         layer = self.layer_entry.get().strip()
@@ -582,67 +584,84 @@ class PolicyTab(ctk.CTkFrame):
             show_warning(self.app, t("warning"), "패키지 입력" if get_lang() == "ko" else "Enter package")
             return
 
-        # 레이어 자동 감지
-        if not layer:
-            r = self.app.api.show_package(pkg)
-            if "uid" not in r:
-                show_error(self.app, t("error"), "패키지 없음" if get_lang() == "ko" else "Package not found")
-                return
-            layers = r.get("access-layers", [])
-            layer = layers[0].get("name") if layers else f"{pkg} Network"
-
         # 테이블 초기화 및 Full 모드로 변경
         for item in self.tree.get_children():
             self.tree.delete(item)
         self._setup_columns(full=True)
         self.generate_btn.configure(state="disabled")
 
-        # API 호출
-        self.app.set_status("불러오는 중..." if get_lang() == "ko" else "Fetching...")
-        result = self.app.api.show_all_access_rules(layer)
+        self.app.is_running = True
+        self._loading = LoadingDialog(self.app, t("loading_fetch_rules"))
+        threading.Thread(target=self._do_fetch_rules, args=(pkg, layer), daemon=True).start()
 
-        if "items" not in result:
+    def _do_fetch_rules(self, pkg, layer):
+        try:
+            # 레이어 자동 감지
+            if not layer:
+                r = self.app.api.show_package(pkg)
+                if "uid" not in r:
+                    self.app.after(0, self._on_fetch_rules_done, None, r)
+                    return
+                layers = r.get("access-layers", [])
+                layer = layers[0].get("name") if layers else f"{pkg} Network"
+
+            result = self.app.api.show_all_access_rules(layer)
+
+            if "items" not in result:
+                self.app.after(0, self._on_fetch_rules_done, None, result)
+                return
+
+            # inline-layer 처리 (블로킹)
+            objects_dict = result.get("objects_dict", {})
+            items_data = []
+            main_rule_no = 0
+
+            for item in result["items"]:
+                item_type = item.get("_item_type", "Rule")
+
+                if item_type == "Section":
+                    items_data.append(("section", item.get("name", "")))
+                else:
+                    main_rule_no += 1
+                    row = self._parse_rule_full(item, objects_dict, str(main_rule_no))
+                    items_data.append(("rule", row))
+
+                    inline_layer = item.get("inline-layer")
+                    if inline_layer:
+                        layer_name = inline_layer if isinstance(inline_layer, str) else inline_layer.get("name", "")
+                        if layer_name:
+                            sub_result = self.app.api.show_all_access_rules(layer_name)
+                            if "items" in sub_result:
+                                sub_objects = sub_result.get("objects_dict", {})
+                                objects_dict.update(sub_objects)
+                                sub_rule_no = 0
+                                for sub_item in sub_result["items"]:
+                                    if sub_item.get("_item_type") == "Rule":
+                                        sub_rule_no += 1
+                                        sub_row = self._parse_rule_full(sub_item, sub_objects, f"{main_rule_no}.{sub_rule_no}")
+                                        items_data.append(("rule", sub_row))
+
+            self.app.after(0, self._on_fetch_rules_done, items_data, result)
+        except Exception as e:
+            self.app.after(0, self._on_fetch_rules_done, None, {"message": str(e)})
+        finally:
+            self.app.after(0, self._loading.close)
+            self.app.is_running = False
+
+    def _on_fetch_rules_done(self, items_data, result):
+        if items_data is None:
             show_error(self.app, t("error"), result.get("message", "Failed"))
             self.app.set_status("준비" if get_lang() == "ko" else "Ready")
             return
 
-        # UID -> name 매핑
-        objects_dict = result.get("objects_dict", {})
-
-        # 결과를 테이블에 표시 (섹션, 번호 포함)
         rule_count = 0
-        main_rule_no = 0
-
-        for item in result["items"]:
-            item_type = item.get("_item_type", "Rule")
-
-            if item_type == "Section":
-                # 섹션 행 추가
-                row = ["", "Section", item.get("name", ""), "", "", "", "", "", ""]
+        for item_type, data in items_data:
+            if item_type == "section":
+                row = ["", "Section", data, "", "", "", "", "", ""]
                 self.tree.insert("", "end", values=row)
             else:
-                # 룰 행 추가
-                main_rule_no += 1
-                row = self._parse_rule_full(item, objects_dict, str(main_rule_no))
-                self.tree.insert("", "end", values=row)
+                self.tree.insert("", "end", values=data)
                 rule_count += 1
-
-                # inline-layer가 있으면 하위 룰도 가져오기
-                inline_layer = item.get("inline-layer")
-                if inline_layer:
-                    layer_name = inline_layer if isinstance(inline_layer, str) else inline_layer.get("name", "")
-                    if layer_name:
-                        sub_result = self.app.api.show_all_access_rules(layer_name)
-                        if "items" in sub_result:
-                            sub_objects = sub_result.get("objects_dict", {})
-                            objects_dict.update(sub_objects)
-                            sub_rule_no = 0
-                            for sub_item in sub_result["items"]:
-                                if sub_item.get("_item_type") == "Rule":
-                                    sub_rule_no += 1
-                                    sub_row = self._parse_rule_full(sub_item, sub_objects, f"{main_rule_no}.{sub_rule_no}")
-                                    self.tree.insert("", "end", values=sub_row)
-                                    rule_count += 1
 
         self._update_row_count()
         self.generate_btn.configure(state="disabled")
