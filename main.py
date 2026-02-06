@@ -34,6 +34,7 @@ if sys.platform == "win32":
 # CustomTkinter DPI 자동 스케일링 비활성화 (수동 제어)
 os.environ["CTK_SCALING"] = "1.0"
 
+import tkinter as tk
 import customtkinter as ctk
 
 # CustomTkinter 자동 DPI 감지 비활성화 (랙 감소)
@@ -188,8 +189,7 @@ class App(ctk.CTk):
     def _build_body(self):
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        body.grid_columnconfigure(1, weight=3)
-        body.grid_columnconfigure(2, weight=1, minsize=40)
+        body.grid_columnconfigure(1, weight=1)
         body.grid_rowconfigure(0, weight=1)
         self._body = body
 
@@ -229,11 +229,21 @@ class App(ctk.CTk):
         )
         self.menu_zone.pack(fill="x", padx=8, pady=2)
 
-        self.content = ctk.CTkFrame(body, fg_color="transparent")
-        self.content.grid(row=0, column=1, sticky="nsew", padx=5)
+        # PanedWindow: content + log_panel
+        sash_bg = "gray40" if self._current_theme == "dark" else "gray70"
+        self._paned = tk.PanedWindow(
+            body, orient=tk.HORIZONTAL,
+            sashwidth=6, sashrelief="flat",
+            showhandle=False, sashcursor="sb_h_double_arrow",
+            bg=sash_bg, borderwidth=0,
+        )
+        self._paned.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+
+        self.content = ctk.CTkFrame(self._paned, fg_color="transparent")
         self.content.grid_propagate(False)
         self.content.grid_rowconfigure(0, weight=1)
         self.content.grid_columnconfigure(0, weight=1)
+        self._paned.add(self.content, stretch="always")
 
         self.import_tab = ImportTab(self.content, self)
         self.policy_tab = PolicyTab(self.content, self)
@@ -244,15 +254,35 @@ class App(ctk.CTk):
         self.zone_tab.grid(row=0, column=0, sticky="nsew")
         self.import_tab.tkraise()
 
-        self.log_panel = LogPanel(body, on_toggle=self._on_log_toggle, width=400)
-        self.log_panel.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
+        self.log_panel = LogPanel(self._paned, on_toggle=self._on_log_toggle, width=400)
         self.log_panel.grid_propagate(False)
+        self._paned.add(self.log_panel, width=400, minsize=200, stretch="never")
+
+        self._saved_sash_offset = 400  # 접기 전 sash 위치 (오른쪽 끝 기준 오프셋)
+        self._paned.bind("<B1-Motion>", self._on_sash_drag)
+
+    def _on_sash_drag(self, event=None):
+        """sash 드래그 시 현재 위치를 실시간 저장"""
+        if self.log_panel._collapsed:
+            return
+        try:
+            pw = self._paned.winfo_width()
+            sx = self._paned.sash_coord(0)[0]
+            offset = pw - sx
+            if offset >= 200:
+                self._saved_sash_offset = offset
+        except Exception:
+            pass
 
     def _on_log_toggle(self, collapsed: bool):
+        self._paned.update_idletasks()
+        pw = self._paned.winfo_width()
         if collapsed:
-            self._body.grid_columnconfigure(2, weight=0, minsize=30)
+            self._paned.paneconfigure(self.log_panel, minsize=30)
+            self._paned.sash_place(0, pw - 30, 0)
         else:
-            self._body.grid_columnconfigure(2, weight=1, minsize=40)
+            self._paned.paneconfigure(self.log_panel, minsize=200)
+            self._paned.sash_place(0, pw - self._saved_sash_offset, 0)
     
     def _switch_page(self, page: str):
         self.current_page.set(page)
@@ -275,6 +305,8 @@ class App(ctk.CTk):
         self._current_theme = "light" if self._current_theme == "dark" else "dark"
         ctk.set_appearance_mode(self._current_theme)
         self.theme_btn.configure(text="🌙" if self._current_theme == "dark" else "☀️")
+        sash_bg = "gray40" if self._current_theme == "dark" else "gray70"
+        self._paned.configure(bg=sash_bg)
         self._save_settings()
     
     def _toggle_lang(self):
