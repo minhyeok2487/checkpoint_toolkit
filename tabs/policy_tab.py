@@ -53,10 +53,10 @@ class PolicyTab(ctk.CTkFrame):
     
     def _build_package(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        frame.grid(row=0, column=0, sticky="ew", padx=2, pady=(2, 1))
         inner = ctk.CTkFrame(frame, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=10)
-        
+
         self.lbl_title = ctk.CTkLabel(inner, text="벌크 정책 생성" if get_lang() == "ko" else "Bulk Policy Generator", 
                                        font=ctk.CTkFont(size=12, weight="bold"), text_color=BRAND_BERRY)
         self.lbl_title.pack(anchor="w")
@@ -80,7 +80,7 @@ class PolicyTab(ctk.CTkFrame):
     
     def _build_options(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
+        frame.grid(row=1, column=0, sticky="ew", padx=2, pady=1)
         inner = ctk.CTkFrame(frame, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=10)
         
@@ -117,12 +117,12 @@ class PolicyTab(ctk.CTkFrame):
     
     def _build_table(self):
         table_frame = ctk.CTkFrame(self, corner_radius=8)
-        table_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
+        table_frame.grid(row=2, column=0, sticky="nsew", padx=2, pady=1)
         table_frame.grid_rowconfigure(0, weight=1)
         table_frame.grid_columnconfigure(0, weight=1)
         
         container = ctk.CTkFrame(table_frame, corner_radius=6)
-        container.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        container.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         
@@ -154,7 +154,7 @@ class PolicyTab(ctk.CTkFrame):
     
     def _build_bottom(self):
         bottom = ctk.CTkFrame(self, corner_radius=8)
-        bottom.grid(row=3, column=0, sticky="ew", padx=10, pady=(5, 10))
+        bottom.grid(row=3, column=0, sticky="ew", padx=2, pady=(1, 2))
         inner = ctk.CTkFrame(bottom, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=10)
         

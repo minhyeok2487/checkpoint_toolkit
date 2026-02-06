@@ -269,7 +269,10 @@ class LoadingDialog(ctk.CTkToplevel):
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
-        self.configure(corner_radius=12)
+
+        # 다크/라이트 테마에 맞춰 배경색 통일
+        bg = "#1a1a1a" if ctk.get_appearance_mode() == "Dark" else "#f0f0f0"
+        self.configure(fg_color=bg)
 
         # 부모 중앙 배치
         self.update_idletasks()
@@ -284,8 +287,8 @@ class LoadingDialog(ctk.CTkToplevel):
         self._frame_idx = 0
         self._anim_id = None
 
-        content = ctk.CTkFrame(self, corner_radius=12)
-        content.pack(fill="both", expand=True)
+        content = ctk.CTkFrame(self, corner_radius=12, fg_color=("#e0e0e0", "#2b2b2b"))
+        content.pack(fill="both", expand=True, padx=2, pady=2)
 
         self._spinner = ctk.CTkLabel(content, text=self._FRAMES[0], font=ctk.CTkFont(size=32))
         self._spinner.pack(pady=(20, 5))

@@ -26,7 +26,7 @@ class ZonePolicyTab(ctk.CTkFrame):
     
     def _build_package_section(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        frame.grid(row=0, column=0, sticky="ew", padx=2, pady=(2, 1))
         inner = ctk.CTkFrame(frame, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=10)
         
@@ -48,7 +48,7 @@ class ZonePolicyTab(ctk.CTkFrame):
     
     def _build_zone_section(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
+        frame.grid(row=1, column=0, sticky="ew", padx=2, pady=1)
         inner = ctk.CTkFrame(frame, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=10)
         
@@ -100,7 +100,7 @@ class ZonePolicyTab(ctk.CTkFrame):
     
     def _build_info_section(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
+        frame.grid(row=2, column=0, sticky="ew", padx=2, pady=1)
         
         info_ko = """💡 생성 버튼 클릭 시 섹션 위치를 묻습니다.
 • SmartConsole에서 Cleanup 룰 번호 확인
@@ -117,7 +117,7 @@ class ZonePolicyTab(ctk.CTkFrame):
     
     def _build_button_section(self):
         frame = ctk.CTkFrame(self, corner_radius=8)
-        frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(5, 10))
+        frame.grid(row=3, column=0, sticky="ew", padx=2, pady=(1, 2))
         inner = ctk.CTkFrame(frame, fg_color="transparent")
         inner.pack(padx=15, pady=10)
         
