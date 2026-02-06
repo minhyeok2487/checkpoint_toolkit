@@ -22,26 +22,54 @@ class IconButton(ctk.CTkButton):
 
 
 class LogPanel(ctk.CTkFrame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, on_toggle=None, **kwargs):
         super().__init__(master, corner_radius=10, **kwargs)
+        self._collapsed = False
+        self._on_toggle = on_toggle
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        
+
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-        
+
         self.log_title = ctk.CTkLabel(header, text=t("log_title"), font=ctk.CTkFont(size=12, weight="bold"))
         self.log_title.pack(side="left")
         self.clear_btn = IconButton(header, t("clear"), self.clear, "secondary", 60)
         self.clear_btn.pack(side="right")
-        
+        self.toggle_btn = ctk.CTkButton(
+            header, text="▶", width=28, height=28, corner_radius=6,
+            fg_color="gray50", hover_color="gray40",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self.toggle,
+        )
+        self.toggle_btn.pack(side="right", padx=(0, 4))
+
         self.textbox = ctk.CTkTextbox(self, font=ctk.CTkFont(family="Consolas", size=12), corner_radius=6)
         self.textbox.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
         self.textbox.configure(state="disabled")
-        
+
         self.status_label = ctk.CTkLabel(self, text=t("ready"), font=ctk.CTkFont(size=11), anchor="w")
         self.status_label.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
-    
+
+    def toggle(self):
+        self._collapsed = not self._collapsed
+        if self._collapsed:
+            self.toggle_btn.configure(text="◀")
+            self.textbox.grid_remove()
+            self.status_label.grid_remove()
+            self.clear_btn.pack_forget()
+            self.log_title.pack_forget()
+            self.configure(width=40)
+        else:
+            self.toggle_btn.configure(text="▶")
+            self.log_title.pack(side="left")
+            self.clear_btn.pack(side="right")
+            self.textbox.grid()
+            self.status_label.grid()
+            self.configure(width=400)
+        if self._on_toggle:
+            self._on_toggle(self._collapsed)
+
     def refresh_lang(self):
         self.log_title.configure(text=t("log_title"))
         self.clear_btn.configure(text=t("clear"))

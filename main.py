@@ -189,18 +189,19 @@ class App(ctk.CTk):
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         body.grid_columnconfigure(1, weight=3)
-        body.grid_columnconfigure(2, weight=1)
+        body.grid_columnconfigure(2, weight=1, minsize=40)
         body.grid_rowconfigure(0, weight=1)
-        
+        self._body = body
+
         self.sidebar = ctk.CTkFrame(body, corner_radius=10, width=160)
         self.sidebar.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         self.sidebar.grid_propagate(False)
-        
+
         self.menu_label = ctk.CTkLabel(self.sidebar, text=t("menu"), font=ctk.CTkFont(size=11, weight="bold"), text_color=("gray10", "gray90"))
         self.menu_label.pack(pady=(12, 8), padx=12, anchor="w")
-        
+
         self.current_page = ctk.StringVar(value="import")
-        
+
         self.menu_import = ctk.CTkButton(
             self.sidebar, text=t("menu_import"), font=ctk.CTkFont(size=12),
             fg_color=BRAND_BERRY, hover_color=BRAND_BERRY_DARK,
@@ -209,7 +210,7 @@ class App(ctk.CTk):
             command=lambda: self._switch_page("import")
         )
         self.menu_import.pack(fill="x", padx=8, pady=2)
-        
+
         self.menu_policy = ctk.CTkButton(
             self.sidebar, text=t("menu_policy"), font=ctk.CTkFont(size=12),
             fg_color="transparent", hover_color="gray70",
@@ -218,7 +219,7 @@ class App(ctk.CTk):
             command=lambda: self._switch_page("policy")
         )
         self.menu_policy.pack(fill="x", padx=8, pady=2)
-        
+
         self.menu_zone = ctk.CTkButton(
             self.sidebar, text=t("menu_zone"), font=ctk.CTkFont(size=12),
             fg_color="transparent", hover_color="gray70",
@@ -227,24 +228,30 @@ class App(ctk.CTk):
             command=lambda: self._switch_page("zone")
         )
         self.menu_zone.pack(fill="x", padx=8, pady=2)
-        
+
         self.content = ctk.CTkFrame(body, fg_color="transparent")
         self.content.grid(row=0, column=1, sticky="nsew", padx=5)
         self.content.grid_rowconfigure(0, weight=1)
         self.content.grid_columnconfigure(0, weight=1)
-        
+
         self.import_tab = ImportTab(self.content, self)
         self.policy_tab = PolicyTab(self.content, self)
         self.zone_tab = ZonePolicyTab(self.content, self)
-        
+
         self.import_tab.grid(row=0, column=0, sticky="nsew")
         self.policy_tab.grid(row=0, column=0, sticky="nsew")
         self.zone_tab.grid(row=0, column=0, sticky="nsew")
         self.import_tab.tkraise()
-        
-        self.log_panel = LogPanel(body, width=400)
+
+        self.log_panel = LogPanel(body, on_toggle=self._on_log_toggle, width=400)
         self.log_panel.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
         self.log_panel.grid_propagate(False)
+
+    def _on_log_toggle(self, collapsed: bool):
+        if collapsed:
+            self._body.grid_columnconfigure(2, weight=0, minsize=40)
+        else:
+            self._body.grid_columnconfigure(2, weight=1, minsize=40)
     
     def _switch_page(self, page: str):
         self.current_page.set(page)
