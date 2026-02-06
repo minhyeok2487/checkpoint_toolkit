@@ -231,6 +231,7 @@ class App(ctk.CTk):
 
         self.content = ctk.CTkFrame(body, fg_color="transparent")
         self.content.grid(row=0, column=1, sticky="nsew", padx=5)
+        self.content.grid_propagate(False)
         self.content.grid_rowconfigure(0, weight=1)
         self.content.grid_columnconfigure(0, weight=1)
 

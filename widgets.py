@@ -70,8 +70,6 @@ class LogPanel(ctk.CTkFrame):
     def toggle(self):
         self._collapsed = not self._collapsed
         if self._collapsed:
-            # 접기 전 실제 너비 저장
-            self._expanded_width = self.winfo_width()
             # 기존 콘텐츠 숨기기 (모두 grid_remove)
             self._header.grid_remove()
             self.textbox.grid_remove()
@@ -86,7 +84,6 @@ class LogPanel(ctk.CTkFrame):
             self._header.grid()
             self.textbox.grid()
             self.status_label.grid()
-            self.configure(width=self._expanded_width)
         if self._on_toggle:
             self._on_toggle(self._collapsed)
 
