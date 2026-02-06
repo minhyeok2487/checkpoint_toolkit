@@ -153,10 +153,18 @@ class CheckPointAPI:
 
     def show_objects(self, obj_type: str, limit: int = 500, offset: int = 0) -> dict:
         """범용 오브젝트 목록 조회 (단일 페이지)"""
-        return self._call(f"show-{obj_type}s", {
+        # CheckPoint API 엔드포인트 이름 매핑 (복수형 규칙이 다른 타입)
+        endpoint_map = {
+            "service-tcp": "show-services-tcp",
+            "service-udp": "show-services-udp",
+        }
+        endpoint = endpoint_map.get(obj_type, f"show-{obj_type}s")
+        # group, application-site, dns-domain은 full 레벨 필요 (members, url-list, is-sub-domain)
+        detail_level = "full" if obj_type in ("group", "application-site", "dns-domain") else "standard"
+        return self._call(endpoint, {
             "limit": limit,
             "offset": offset,
-            "details-level": "standard"
+            "details-level": detail_level
         })
 
     def show_all_objects(self, obj_type: str, progress_callback=None, user_defined_only=True) -> dict:

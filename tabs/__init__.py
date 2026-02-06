@@ -283,7 +283,8 @@ class ImportTab(ctk.CTkFrame):
         elif obj_type == "network":
             return [obj.get("name"), obj.get("subnet4", ""), obj.get("mask-length4", ""), obj.get("comments", "")]
         elif obj_type == "group":
-            members = ";".join([m.get("name", "") for m in obj.get("members", [])])
+            raw_members = obj.get("members", [])
+            members = ";".join([m.get("name", "") if isinstance(m, dict) else str(m) for m in raw_members])
             return [obj.get("name"), members, obj.get("comments", "")]
         elif obj_type in ("service-tcp", "service-udp"):
             return [obj.get("name"), obj.get("port", ""), obj.get("comments", "")]
@@ -291,7 +292,10 @@ class ImportTab(ctk.CTkFrame):
             return [obj.get("name"), obj.get("ipv4-address-first", ""), obj.get("ipv4-address-last", ""), obj.get("comments", "")]
         elif obj_type == "application-site":
             urls = ";".join(obj.get("url-list", []))
-            return [obj.get("name"), urls, obj.get("primary-category", ""), obj.get("description", "")]
+            cat = obj.get("primary-category", "")
+            if isinstance(cat, dict):
+                cat = cat.get("name", "")
+            return [obj.get("name"), urls, cat, obj.get("description", "")]
         elif obj_type == "dns-domain":
             fqdn_only = "true" if not obj.get("is-sub-domain", False) else "false"
             return [obj.get("name"), fqdn_only, obj.get("comments", "")]
